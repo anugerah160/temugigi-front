@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {jwtDecode} from "jwt-decode";
 import api from "../../api";
 
 function Profile() {
+  const [showUploadImageModal, setShowUploadImageModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+  const fileInputRef = useRef(null);
   const [profile, setProfile] = useState(null);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -29,8 +32,6 @@ function Profile() {
       }
 
       try {
-        jwtDecode(token);
-
         const response = await api.get("/profile", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -45,6 +46,54 @@ function Profile() {
     fetchProfile();
   }, [navigate]);
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleUploadImage = async (e) => {
+    e.preventDefault();
+  
+    if (!selectedImage) {
+      alert("Please select an image first.");
+      return;
+    }
+  
+    try {
+      const token = localStorage.getItem("token");
+      const formData = new FormData();
+      formData.append("Img_profile", selectedImage);
+  
+      await api.put("/profile-picture", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+  
+      alert("Profile picture updated successfully!");
+      setShowUploadImageModal(false);
+      setSelectedImage(null);
+      setPreviewImage(null);
+  
+      // Refresh profile data
+      const response = await api.get("/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProfile(response.data);
+    } catch (error) {
+      console.error("Failed to upload image:", error.response?.data || error.message);
+      alert("Failed to upload image. Please try again.");
+    }
+  };
+  
   // Handle Input Change for Password
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
@@ -164,6 +213,11 @@ function Profile() {
             Edit Profile
           </Link>
           <button
+          onClick={() => setShowUploadImageModal(true)}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition">
+          Edit Image
+          </button>
+          <button
             onClick={() => setShowChangePasswordModal(true)}
             className="bg-gray-500 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-600 transition"
           >
@@ -171,6 +225,54 @@ function Profile() {
           </button>
         </div>
       </div>
+
+      {/* Upload Image Modal */}
+      {showUploadImageModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold text-blue-600 text-center mb-4">Upload Profile Picture</h2>
+            <form onSubmit={handleUploadImage} className="space-y-4">
+              {/* Image Preview */}
+              {previewImage && (
+                <div className="flex justify-center mb-4">
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    className="w-24 h-24 rounded-full object-cover border-2 border-blue-500"
+                  />
+                </div>
+              )}
+
+              {/* File Input */}
+              <div className="relative">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageChange}
+                  accept="image/*"
+                  className="w-full p-2 border rounded-md"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setShowUploadImageModal(false)}
+                  className="bg-gray-400 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-500 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition"
+                >
+                  Upload
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Change Password Modal */}
       {showChangePasswordModal && (

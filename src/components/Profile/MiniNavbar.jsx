@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
-import { jwtDecode } from "jwt-decode";
+import {jwtDecode} from "jwt-decode";
 
 function MiniNavbar() {
   const [showLogoutModal, setShowLogoutModal] = useState(false); // State untuk modal
@@ -50,30 +50,106 @@ function MiniNavbar() {
         {/* Links */}
         <ul className="flex space-x-6 text-gray-600">
           {/* Diagnosis */}
-          <li>
-            <Link to="/predict" className="hover:text-green-600 transition">
-              Diagnosis
-            </Link>
-          </li>
+          {role === "Patient" && (
+            <li>
+              <Link to="/predict" className="hover:text-green-600 transition">
+                Diagnosis
+              </Link>
+            </li>
+          )}
 
-          {/* List CoAss */}
-          <li>
-            <Link to="/list-coass" className="hover:text-green-600 transition">
-              List CoAss
-            </Link>
-          </li>
+          {/* Request Meeting (Hanya untuk Patient) */}
+          {role === "Patient" && (
+            <li>
+              <Link
+                to="/request-meeting"
+                className="hover:text-green-600 transition"
+              >
+                Request Meeting
+              </Link>
+            </li>
+          )}
 
-          {/* List Patient (Hanya untuk role selain "Patient") */}
-          {role !== "Patient" && (
+          {/* My Schedule (Hanya untuk Patient) */}
+          {role === "Patient" && (
+            <li>
+              <Link
+                to="/my-schedule"
+                className="hover:text-green-600 transition"
+              >
+                My Schedule
+              </Link>
+            </li>
+          )}
+
+          {/* Pending Requests (Hanya untuk Coass) */}
+          {role === "Coass" && (
+            <li>
+              <Link
+                to="/pending-requests"
+                className="hover:text-green-600 transition"
+              >
+                Pending Requests
+              </Link>
+            </li>
+          )}
+
+          {/* Review Requests (Hanya untuk Coass) */}
+          {/* {role === "Coass" && (
+            <li>
+              <Link
+                to="/review-request"
+                className="hover:text-green-600 transition"
+              >
+                Review Request
+              </Link>
+            </li>
+          )} */}
+
+          {/* Schedule Meeting (Hanya untuk Coass) */}
+          {role === "Coass" && (
+            <li>
+              <Link
+                to="/schedule-meeting"
+                className="hover:text-green-600 transition"
+              >
+                Schedule Meeting
+              </Link>
+            </li>
+          )}
+
+          {/* Coass Schedule (Hanya untuk Coass) */}
+          {role === "Coass" && (
+            <li>
+              <Link
+                to="/coass-schedule"
+                className="hover:text-green-600 transition"
+              >
+                Coass Schedule
+              </Link>
+            </li>
+          )}
+
+          {/* List CoAss (Hanya untuk Patient) */}
+          {/* {role === "Patient" && (
+            <li>
+              <Link to="/list-coass" className="hover:text-green-600 transition">
+                List CoAss
+              </Link>
+            </li>
+          )} */}
+
+          {/* List Patient (Hanya untuk Coass) */}
+          {/* {role === "Coass" && (
             <li>
               <Link
                 to="/list-patients"
                 className="hover:text-green-600 transition"
               >
-                List Patient
+                List Patients
               </Link>
             </li>
-          )}
+          )} */}
 
           {/* Profile */}
           <li>
