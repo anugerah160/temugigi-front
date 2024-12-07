@@ -71,7 +71,7 @@ function PendingRequests() {
           </tbody>
         </table>
       ) : (
-        <p>Tidak ada permintaan pending saat ini.</p>
+        <p>Tidak ada permintaan dari pasien saat ini.</p>
       )}
 
       {/* Modal for Request Details */}
@@ -80,10 +80,10 @@ function PendingRequests() {
           <div className="bg-white p-6 rounded shadow-lg w-full max-w-lg relative">
             <h2 className="text-xl font-semibold mb-4">Detail Permintaan</h2>
             <div className="mb-4">
-              <p className="font-medium">Name: {selectedRequest.Name}</p>
-              <p className="font-medium">Disease Name: {selectedRequest.Disease_name}</p>
-              <p className="text-gray-600">Description: {selectedRequest.Description}</p>
-              <p className="text-gray-600">Requested At: {new Date(selectedRequest.Requested_at).toLocaleString()}</p>
+              <p className="font-medium">Name         : {selectedRequest.Name}</p>
+              <p className="font-medium">Disease Name : {selectedRequest.Disease_name}</p>
+              <p className="text-gray-600">Description  : {selectedRequest.Description}</p>
+              <p className="text-gray-600">Diajukan pada: {new Date(selectedRequest.Requested_at).toLocaleString()}</p>
             </div>
             <div className="mb-4">
               <img

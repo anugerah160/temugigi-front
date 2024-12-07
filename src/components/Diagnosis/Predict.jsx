@@ -7,6 +7,7 @@ function Predict() {
   const [image, setImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [showLoadingPopup, setShowLoadingPopup] = useState(false);
 
   const navigate = useNavigate();
 
@@ -22,20 +23,22 @@ function Predict() {
   }, [navigate]);
 
   // Fetch the latest diagnosis
-  useEffect(() => {
-    const fetchDiagnosis = async () => {
-      try {
-        const response = await api.get("/predict");
-        setDiagnosis(response.data[0]); // Set the first diagnosis (if available)
-      } catch (err) {
-        if (err.response?.status === 404) {
-          setDiagnosis(null); // No diagnosis found
-        } else {
-          console.error("Failed to fetch diagnosis:", err.response?.data);
-          setError("An error occurred while fetching diagnosis.");
-        }
+  const fetchDiagnosis = async () => {
+    try {
+      const response = await api.get("/predict");
+      setDiagnosis(response.data[0]); // Set the first diagnosis (if available)
+    } catch (err) {
+      if (err.response?.status === 404) {
+        setDiagnosis(null); // No diagnosis found
+      } else {
+        console.error("Failed to fetch diagnosis:", err.response?.data);
+        setError("An error occurred while fetching diagnosis.");
       }
-    };
+    }
+  };
+
+  // Fetch the latest diagnosis on component mount
+  useEffect(() => {
     fetchDiagnosis();
   }, []);
 
@@ -58,23 +61,27 @@ function Predict() {
     const formData = new FormData();
     formData.append("Img_disease", image); // Ensure key matches backend key
 
-    try {
-      const response = await api.post("/predict", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+    setShowLoadingPopup(true); // Show loading popup
+    setTimeout(async () => {
+      try {
+        await api.post("/predict", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
 
-      // Refresh the diagnosis data after a successful upload
-      setDiagnosis(response.data);
-      setImage(null); // Reset the image input
-      alert("Image uploaded successfully!");
-    } catch (err) {
-      console.error("Failed to upload image:", err.response?.data);
-      setError("An error occurred while uploading the image.");
-    } finally {
-      setIsSubmitting(false);
-    }
+        // Refresh diagnosis data after successful upload
+        await fetchDiagnosis(); // Fetch the latest diagnosis
+        setImage(null); // Reset the image input
+        alert("Berhasil Mendiagnosis!");
+      } catch (err) {
+        console.error("Failed to detect Image", err.response?.data);
+        setError("Model Tidak dapat mendeteksi Foto, Tolong Gunakan Foto Gigi yang benar");
+      } finally {
+        setIsSubmitting(false);
+        setShowLoadingPopup(false); // Hide loading popup
+      }
+    }, 1000); // Delay for 1 seconds
   };
 
   return (
@@ -98,13 +105,13 @@ function Predict() {
             <p><strong>Model Version:</strong> {diagnosis.Model_version}</p>
           </div>
         ) : (
-          <p className="text-gray-500">You haven't performed any diagnosis yet.</p>
+          <p className="text-gray-500">Anda tidak memiliki riwayat sama sekali</p>
         )}
       </div>
 
       {/* Card for POST /predict */}
       <div className="bg-white shadow-lg rounded-lg p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Upload Image for Analysis</h2>
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">Upload Gambar Gigi anda untuk Diagnosis</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <input
@@ -120,10 +127,19 @@ function Predict() {
             className={`px-6 py-2 rounded-md text-white ${isSubmitting ? "bg-gray-400" : "bg-green-500 hover:bg-green-600"} transition duration-200`}
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Submitting..." : "Submit"}
+            {image ? (isSubmitting ? "Model Sedang Mendeteksi..." : "Cek Kondisi Gigi") : "Upload Gambar terlebih dahulu"}
           </button>
         </form>
       </div>
+
+      {/* Loading Popup */}
+      {showLoadingPopup && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white rounded-lg p-6 text-center shadow-lg">
+            <p className="text-lg font-semibold text-gray-800">Proses Diagnosis...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

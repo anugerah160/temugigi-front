@@ -13,14 +13,25 @@ function Login() {
     e.preventDefault();
     try {
       const response = await api.post("/login", { email, password });
-      const { token } = response.data;
+      const { token, role } = response.data;
       localStorage.setItem("token", token);
+      localStorage.setItem("role", role);
+
       alert("Login successful!");
-      navigate("/profile");
+      
+      // Redirect based on the role
+      if (role === "Patient") {
+        navigate("/predict");
+      } else if (role === "Coass") {
+        navigate("/pending-requests");
+      } else {
+        alert("Invalid role. Contact support.");
+      }
     } catch (error) {
       alert("Login failed. Please check your credentials.");
     }
   };
+  
 
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);

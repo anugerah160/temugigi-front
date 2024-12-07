@@ -5,68 +5,71 @@ import api from "../../api";
 function RequestMeeting() {
   const [coassList, setCoassList] = useState([]);
   const [filteredCoass, setFilteredCoass] = useState([]);
-  const [selectedCoass, setSelectedCoass] = useState(null); // Menyimpan data Co-Ass yang dipilih
+  const [selectedCoass, setSelectedCoass] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [showPopup, setShowPopup] = useState(false); // State untuk pop-up detail
-  const [showConfirmation, setShowConfirmation] = useState(false); // State untuk konfirmasi
-  const [showErrorPopup, setShowErrorPopup] = useState(false); // State untuk pop-up error
+  const [statusMessage, setStatusMessage] = useState(null); // Menyimpan status Pending/Accepted
+  const [showPopup, setShowPopup] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
 
   const navigate = useNavigate();
 
-  // Validasi token JWT
+  // Validasi token JWT dan fetch data Coass
   useEffect(() => {
-    const cekToken = () => {
+    const fetchData = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
         navigate("/login");
+        return;
+      }
+
+      try {
+        // Fetch daftar Co-Ass
+        const response = await api.get("/list-coass", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        // Menangani respon berdasarkan format API
+        if (response.data.message) {
+          setStatusMessage(response.data.message); // Status: Pending/Accepted
+        } else {
+          setCoassList(response.data);
+          setFilteredCoass(response.data); // Tampilkan seluruh data default
+        }
+      } catch (error) {
+        alert("Failed to load data. Please try again later.");
       }
     };
-    cekToken();
+
+    fetchData();
   }, [navigate]);
 
-  // Fetch list of Co-Ass
-  useEffect(() => {
-    const fetchCoass = async () => {
-      try {
-        const response = await api.get("/list-coass", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // Sertakan token
-          },
-        });
-        setCoassList(response.data);
-        setFilteredCoass(response.data); // Default to show all data
-      } catch (error) {
-        alert("Failed to load Co-Ass list. Please try again.");
-      }
-    };
-    fetchCoass();
-  }, []);
-
-  // Filter data based on search query
+  // Filter data berdasarkan query pencarian
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
+
     const filtered = coassList.filter(
       (coass) =>
         coass.Name.toLowerCase().includes(query) ||
         coass.University.toLowerCase().includes(query) ||
         coass.Appointment_Place.toLowerCase().includes(query)
     );
+
     setFilteredCoass(filtered);
   };
 
-  // Handle meeting request
+  // Mengajukan permintaan meeting
   const handleRequest = async () => {
     setLoading(true);
+
     try {
       await api.post(
         "/request-meeting",
-        { coassId: selectedCoass.id },
+        { coass_id: selectedCoass.Id },
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
       alert("Berhasil mengajukan, mohon menunggu.");
@@ -74,10 +77,14 @@ function RequestMeeting() {
       setShowConfirmation(false);
       setSelectedCoass(null);
     } catch (error) {
-      if (error.response?.status === 400 && error.response.data?.message === "You already have a pending or accepted request.") {
-        setShowErrorPopup(true); // Tampilkan pop-up error
+      if (
+        error.response?.status === 400 &&
+        error.response.data?.message ===
+          "You already have a pending or accepted request."
+      ) {
+        setShowErrorPopup(true); // Menampilkan pop-up error
       } else {
-        alert("Gagal mengajukan permintaan temu. Silakan coba lagi.");
+        alert("Gagal mengajukan permintaan. Silakan coba lagi.");
       }
     } finally {
       setLoading(false);
@@ -90,41 +97,42 @@ function RequestMeeting() {
         Request a Meeting with a Co-Ass
       </h1>
 
-      {/* Search bar */}
-      <div className="mb-6">
-        <input
-          type="text"
-          placeholder="Search by Name, University, or place of practice..."
-          value={searchQuery}
-          onChange={handleSearch}
-          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
-      </div>
+      {/* Pesan Status Pending/Accepted */}
+      {statusMessage && (
+        <div className="mb-6 p-4 bg-yellow-100 text-yellow-700 border-l-4 border-yellow-500">
+          {statusMessage}
+        </div>
+      )}
+
+      {/* Search Bar */}
+      {!statusMessage && (
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Search by Name, University, or place of practice..."
+            value={searchQuery}
+            onChange={handleSearch}
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+      )}
 
       {/* Cards for Co-Ass */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {filteredCoass.map((coass) => (
           <div
-            key={coass.id}
+            key={coass.Id}
             className="bg-white shadow-lg rounded-lg p-4 flex flex-col items-center text-center"
           >
-            {/* Profile Picture */}
             <img
               src={coass.Img_profile || "https://via.placeholder.com/150"}
               alt={coass.Name}
               className="w-20 h-20 rounded-full object-cover mb-4"
             />
             <h2 className="text-lg font-semibold text-gray-800">{coass.Name}</h2>
-            {/* Appointment_Place with truncation */}
             <p
               className="text-sm text-gray-700 mt-2 truncate"
-              style={{
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                maxWidth: "100%",
-              }}
-              title={coass.Appointment_Place} // Menampilkan teks lengkap sebagai tooltip
+              title={coass.Appointment_Place}
             >
               {coass.Appointment_Place.length > 20
                 ? `${coass.Appointment_Place.substring(0, 20)}...`

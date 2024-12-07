@@ -1,27 +1,13 @@
 import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import logo from "../../assets/logo.png";
-import {jwtDecode} from "jwt-decode";
 
 function MiniNavbar() {
-  const [showLogoutModal, setShowLogoutModal] = useState(false); // State untuk modal
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
 
-  // Ambil token JWT dari localStorage
-  const token = localStorage.getItem("token");
-
-  // Decode JWT untuk mendapatkan role
-  let role = null;
-  if (token) {
-    try {
-      const decoded = jwtDecode(token);
-      role = decoded.role; // Pastikan role ada di payload JWT
-    } catch (error) {
-      console.error("Invalid token:", error);
-      role = null;
-    }
-  }
+  // Ambil role dari localStorage
+  const role = localStorage.getItem("role");
 
   // Halaman tanpa Navbar
   const noNavbarRoutes = ["/", "/login", "/register-coass", "/register-patient"];
@@ -31,172 +17,102 @@ function MiniNavbar() {
     return null;
   }
 
-  // Handle logout
-  const handleLogout = () => {
-    localStorage.removeItem("token"); // Hapus token dari localStorage
-    navigate("/login"); // Redirect ke halaman login
-  };
-
   return (
     <>
       {/* Navbar */}
-      <nav className="bg-white shadow-md p-4 flex justify-between items-center">
-        {/* Logo */}
-        <div className="flex items-center">
-          <img src={logo} alt="Logo" className="w-12 h-12 mr-4" />
-          <h1 className="text-lg font-bold text-green-600">TemuGigi</h1>
-        </div>
-
-        {/* Links */}
-        <ul className="flex space-x-6 text-gray-600">
-          {/* Diagnosis */}
-          {role === "Patient" && (
-            <li>
-              <Link to="/predict" className="hover:text-green-600 transition">
-                Diagnosis
-              </Link>
-            </li>
-          )}
-
-          {/* Request Meeting (Hanya untuk Patient) */}
-          {role === "Patient" && (
-            <li>
-              <Link
-                to="/request-meeting"
-                className="hover:text-green-600 transition"
-              >
-                Request Meeting
-              </Link>
-            </li>
-          )}
-
-          {/* My Schedule (Hanya untuk Patient) */}
-          {role === "Patient" && (
-            <li>
-              <Link
-                to="/my-schedule"
-                className="hover:text-green-600 transition"
-              >
-                My Schedule
-              </Link>
-            </li>
-          )}
-
-          {/* Pending Requests (Hanya untuk Coass) */}
-          {role === "Coass" && (
-            <li>
-              <Link
-                to="/pending-requests"
-                className="hover:text-green-600 transition"
-              >
-                Pending Requests
-              </Link>
-            </li>
-          )}
-
-          {/* Review Requests (Hanya untuk Coass) */}
-          {/* {role === "Coass" && (
-            <li>
-              <Link
-                to="/review-request"
-                className="hover:text-green-600 transition"
-              >
-                Review Request
-              </Link>
-            </li>
-          )} */}
-
-          {/* Schedule Meeting (Hanya untuk Coass) */}
-          {role === "Coass" && (
-            <li>
-              <Link
-                to="/schedule-meeting"
-                className="hover:text-green-600 transition"
-              >
-                Schedule Meeting
-              </Link>
-            </li>
-          )}
-
-          {/* Coass Schedule (Hanya untuk Coass) */}
-          {role === "Coass" && (
-            <li>
-              <Link
-                to="/coass-schedule"
-                className="hover:text-green-600 transition"
-              >
-                Coass Schedule
-              </Link>
-            </li>
-          )}
-
-          {/* List CoAss (Hanya untuk Patient) */}
-          {/* {role === "Patient" && (
-            <li>
-              <Link to="/list-coass" className="hover:text-green-600 transition">
-                List CoAss
-              </Link>
-            </li>
-          )} */}
-
-          {/* List Patient (Hanya untuk Coass) */}
-          {/* {role === "Coass" && (
-            <li>
-              <Link
-                to="/list-patients"
-                className="hover:text-green-600 transition"
-              >
-                List Patients
-              </Link>
-            </li>
-          )} */}
-
-          {/* Profile */}
-          <li>
-            <Link to="/profile" className="hover:text-green-600 transition">
-              Profile
-            </Link>
-          </li>
-
-          {/* Logout */}
-          <li>
-            <button
-              onClick={() => setShowLogoutModal(true)} // Tampilkan modal
-              className="hover:text-red-500 transition focus:outline-none"
-            >
-              Logout
-            </button>
-          </li>
-        </ul>
-      </nav>
-
-      {/* Logout Confirmation Modal */}
-      {showLogoutModal && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-96">
-            <h2 className="text-lg font-semibold text-gray-800">
-              Konfirmasi Logout
-            </h2>
-            <p className="text-gray-600 mt-2">
-              Apakah Anda yakin ingin keluar?
-            </p>
-            <div className="flex justify-end mt-4 space-x-4">
-              <button
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
-                onClick={() => setShowLogoutModal(false)} // Tutup modal
-              >
-                Batal
-              </button>
-              <button
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
-                onClick={handleLogout} // Lakukan logout
-              >
-                Keluar
-              </button>
-            </div>
+      <nav className="bg-gradient-to-r from-green-400 to-green-600 p-4 shadow-md fixed w-full z-50">
+        <div className="container mx-auto flex justify-between items-center">
+          {/* Logo */}
+          <div className="flex items-center">
+            <img src={logo} alt="Logo" className="w-10 h-10 mr-3" />
+            <h1 className="text-xl font-bold text-white tracking-wide">
+              Temu<span className="text-yellow-300">Gigi</span>
+            </h1>
           </div>
+
+          {/* Hamburger Menu */}
+          <button
+            className="block md:hidden text-white focus:outline-none"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16m-7 6h7"}
+              ></path>
+            </svg>
+          </button>
+
+          {/* Links */}
+          <ul
+            className={`${
+              isMobileMenuOpen ? "block" : "hidden"
+            } md:flex space-y-4 md:space-y-0 md:space-x-6 text-white absolute md:static top-full left-0 w-full md:w-auto bg-green-600 md:bg-transparent md:shadow-none shadow-md p-4 md:p-0 transition-all`}
+          >
+            {role === "Patient" && (
+              <>
+                <li>
+                  <Link to="/predict" className="hover:text-yellow-300 transition">
+                    Diagnosis
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/request-meeting" className="hover:text-yellow-300 transition">
+                    Request Meeting
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/my-schedule" className="hover:text-yellow-300 transition">
+                    My Schedule
+                  </Link>
+                </li>
+              </>
+            )}
+
+            {role === "Coass" && (
+              <>
+                <li>
+                  <Link to="/pending-requests" className="hover:text-yellow-300 transition">
+                    Pending Requests
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/schedule-meeting" className="hover:text-yellow-300 transition">
+                    Schedule Meeting
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/coass-schedule" className="hover:text-yellow-300 transition">
+                    Coass Schedule
+                  </Link>
+                </li>
+              </>
+            )}
+
+            <li>
+              <Link to="/profile" className="hover:text-yellow-300 transition">
+                Profile
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/logout"
+                className="hover:text-red-400 transition focus:outline-none"
+              >
+                Logout
+              </Link>
+            </li>
+          </ul>
         </div>
-      )}
+      </nav>
     </>
   );
 }

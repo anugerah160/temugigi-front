@@ -3,13 +3,14 @@ import api from "../../api";
 
 function CoassSchedule() {
   const [schedules, setSchedules] = useState([]);
+  const [expandedRow, setExpandedRow] = useState(null); // Untuk melacak baris yang diperluas
 
   // Fetch schedules from API
   const fetchSchedules = async () => {
     try {
       const response = await api.get("/coass-schedule", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Include token for authentication
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Sertakan token untuk autentikasi
         },
       });
       setSchedules(response.data);
@@ -34,10 +35,9 @@ function CoassSchedule() {
     return new Date(dateString).toLocaleString("id-ID", options);
   };
 
-  // Generate WhatsApp URL
-  const generateWhatsAppURL = (phone, patientName) => {
-    const message = `Hello ${patientName},\n\nI would like to confirm our appointment. Thank you!`;
-    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  // Handle row expansion toggle
+  const toggleDetails = (id) => {
+    setExpandedRow((prev) => (prev === id ? null : id));
   };
 
   return (
@@ -51,44 +51,82 @@ function CoassSchedule() {
             <thead className="bg-green-500 text-white">
               <tr>
                 <th className="px-4 py-2">No</th>
-                <th className="px-4 py-2">Appointment Place</th>
-                <th className="px-4 py-2">Date&Time</th>
-                <th className="px-4 py-2">Name</th>
-                <th className="px-4 py-2">Gender</th>
+                <th className="px-4 py-2">Appointment Date</th>
+                <th className="px-4 py-2">Place</th>
+                <th className="px-4 py-2">Patient Name</th>
                 <th className="px-4 py-2">Disease Name</th>
-                <th className="px-4 py-2">Description</th>
-                <th className="px-4 py-2">Actions</th>
+                <th className="px-4 py-2">Details</th>
               </tr>
             </thead>
             <tbody>
               {schedules.map((schedule, index) => (
-                <tr
-                  key={schedule.Schedule_id}
-                  className="text-center border-t hover:bg-gray-100"
-                >
-                  <td className="px-4 py-2">{index + 1}</td>
-                  <td className="px-4 py-2">{schedule.Appointment_place}</td>
-                  <td className="px-4 py-2">
-                    {formatDate(schedule.Appointment_date)}
-                  </td>
-                  <td className="px-4 py-2">{schedule.Patient_name}</td>
-                  <td className="px-4 py-2">{schedule.Patient_gender}</td>
-                  <td className="px-4 py-2">{schedule.Disease_name}</td>
-                  <td className="px-4 py-2">{schedule.Description}</td>
-                  <td className="px-4 py-2">
-                    <a
-                      href={generateWhatsAppURL(
-                        schedule.Patient_phone,
-                        schedule.Patient_name
-                      )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-200"
-                    >
-                      Contact
-                    </a>
-                  </td>
-                </tr>
+                <React.Fragment key={schedule.Schedule_id}>
+                  <tr className="text-center border-t hover:bg-gray-100">
+                    <td className="px-4 py-2 font-semibold">{index + 1}</td>
+                    <td className="px-4 py-2 text-green-700 font-bold">
+                      {formatDate(schedule.Appointment_date)}
+                    </td>
+                    <td className="px-4 py-2 text-green-700 font-bold">
+                      {schedule.Appointment_place}
+                    </td>
+                    <td className="px-4 py-2 text-green-700 font-bold">
+                      {schedule.Patient_name}
+                    </td>
+                    <td className="px-4 py-2 text-green-700 font-bold">
+                      {schedule.Disease_name}
+                    </td>
+                    <td className="px-4 py-2">
+                      <button
+                        onClick={() => toggleDetails(schedule.Schedule_id)}
+                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
+                      >
+                        {expandedRow === schedule.Schedule_id
+                          ? "Hide Details"
+                          : "Show Details"}
+                      </button>
+                    </td>
+                  </tr>
+                  {expandedRow === schedule.Schedule_id && (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-4 bg-gray-50 text-left">
+                        <div className="p-4 rounded-md shadow-md">
+                          <h2 className="text-lg font-bold text-gray-800 mb-2">
+                            Detail Informasi
+                          </h2>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Image */}
+                            <div className="flex justify-center">
+                              <img
+                                src={schedule.Img_disease}
+                                alt={schedule.Disease_name}
+                                className="w-40 h-40 object-cover border-2 border-gray-300 rounded-md shadow-lg"
+                              />
+                            </div>
+                            {/* Text Details */}
+                            <div>
+                              <p className="text-sm text-gray-700">
+                                <strong>Gender:</strong> {schedule.Patient_gender}
+                              </p>
+                              <p className="text-sm text-gray-700">
+                                <strong>Description:</strong> {schedule.Description}
+                              </p>
+                              <a
+                                href={`https://wa.me/${schedule.Patient_phone}?text=${encodeURIComponent(
+                                  `Hello ${schedule.Patient_name},\n\nI would like to confirm our appointment. Thank you!`
+                                )}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block mt-4 bg-green-500 text-white text-center py-2 px-4 rounded-md hover:bg-green-600 transition duration-200"
+                              >
+                                Contact via WhatsApp
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               ))}
             </tbody>
           </table>

@@ -16,6 +16,7 @@ import ReviewPending from "./components/Profile/ReviewPending";
 import ScheduleMeeting from "./components/Profile/ScheduleMeeting";
 import ViewMySchedule from "./components/Profile/ViewMySchedule";
 import ViewCoassSchedule from "./components/Profile/ViewCoassSchedule";
+import Logout from "./components/Auth/Logout";
 
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
       <MiniNavbar /> {/* Tambahkan Navbar */}
       <Routes>
         <Route path="/" element={<Login />} />
+        <Route path="/logout" element={<Logout />} />
         <Route path="/register-patient" element={<RegisterPatient />} />
         <Route path="/register-coass" element={<RegisterCoass />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
