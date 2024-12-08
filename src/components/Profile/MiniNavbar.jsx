@@ -10,7 +10,7 @@ function MiniNavbar() {
   const role = localStorage.getItem("role");
 
   // Halaman tanpa Navbar
-  const noNavbarRoutes = ["/", "/login", "/register-coass", "/register-patient"];
+  const noNavbarRoutes = ["/", "/login", "/register-coass", "/register-patient", "/reset-password", "/forgot-password"];
 
   // Jangan tampilkan navbar jika di halaman tertentu
   if (noNavbarRoutes.includes(location.pathname)) {

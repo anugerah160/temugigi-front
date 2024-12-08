@@ -5,6 +5,7 @@ import Login from "./components/Auth/Login";
 import RegisterPatient from "./components/Auth/RegisterPatient";
 import RegisterCoass from "./components/Auth/RegisterCoass";
 import ForgotPassword from "./components/Auth/ForgotPassword";
+import ResetPassword from "./components/Auth/ResetPassword";
 import Predict from "./components/Diagnosis/Predict";
 import ListCoass from "./components/Profile/ListCoass";
 import ListPatients from "./components/Profile/ListPatients";
@@ -29,6 +30,7 @@ function App() {
         <Route path="/register-patient" element={<RegisterPatient />} />
         <Route path="/register-coass" element={<RegisterCoass />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/predict" element={<Predict />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/edit" element={<UpdateProfile />} />
